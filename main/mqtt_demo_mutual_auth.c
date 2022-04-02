@@ -75,6 +75,9 @@
 /* Clock for timer. */
 #include "clock.h"
 
+/* cJSON for data format */
+#include "cJSON.h"
+
 /**
  * These configuration settings are required to run the mutual auth demo.
  * Throw compilation error if the below configs are not defined.
@@ -540,6 +543,11 @@ static void updateSubAckStatus( MQTTPacketInfo_t * pPacketInfo );
  * @param[in] pMqttContext MQTT context pointer.
  */
 static int handleResubscribe( MQTTContext_t * pMqttContext );
+
+/**
+ * @brief Function to geneate data under JSON format
+ */
+// static void GenerateJSON();
 
 /*-----------------------------------------------------------*/
 
@@ -1146,7 +1154,7 @@ static int subscribeToTopic( MQTTContext_t * pMqttContext )
 
     /* Generate packet identifier for the SUBSCRIBE packet. */
     globalSubscribePacketIdentifier = MQTT_GetPacketId( pMqttContext );
-
+    // GenerateJSON();
     /* Send SUBSCRIBE packet. */
     mqttStatus = MQTT_Subscribe( pMqttContext,
                                  pGlobalSubscriptionList,
@@ -1234,12 +1242,24 @@ static int publishToTopic( MQTTContext_t * pMqttContext )
     }
     else
     {
+        /* Generate JSON data to publish */
+        /*TODO: Comunicate PZEM to get data*/
+        cJSON *root;
+        root = cJSON_CreateObject();
+        cJSON_AddStringToObject(root, "mac_Id", "01:02:03:04:05:06");
+        cJSON_AddNumberToObject(root, "U", 220.00);
+        cJSON_AddNumberToObject(root, "I", 0.03);
+        cJSON_AddNumberToObject(root, "F", 50);
+        cJSON_AddNumberToObject(root, "P", 50);
+        cJSON_AddNumberToObject(root, "Energy", 1000);
+        char *data_JSON = cJSON_Print(root);
+
         /* This example publishes to only one topic and uses QOS1. */
         outgoingPublishPackets[ publishIndex ].pubInfo.qos = MQTTQoS1;
         outgoingPublishPackets[ publishIndex ].pubInfo.pTopicName = MQTT_PUB_TOPIC;
         outgoingPublishPackets[ publishIndex ].pubInfo.topicNameLength = MQTT_PUB_TOPIC_LENGTH;
-        outgoingPublishPackets[ publishIndex ].pubInfo.pPayload = MQTT_EXAMPLE_MESSAGE;
-        outgoingPublishPackets[ publishIndex ].pubInfo.payloadLength = MQTT_EXAMPLE_MESSAGE_LENGTH;
+        outgoingPublishPackets[ publishIndex ].pubInfo.pPayload = data_JSON;
+        outgoingPublishPackets[ publishIndex ].pubInfo.payloadLength = strlen(data_JSON);
 
         /* Get a new packet id. */
         outgoingPublishPackets[ publishIndex ].packetId = MQTT_GetPacketId( pMqttContext );
@@ -1582,5 +1602,20 @@ int aws_iot_demo_main( int argc,
 
     return returnStatus;
 }
+
+//"{\"mac_Id\":\"01:02:03:04:05:06\",\"U\":\"220.00\",\"I\":\"0.03\",\"F\":\"50\",\"P\":\"50\",\"Energy\":\"1000\"}"
+// void GenerateJSON() 
+// {
+//     cJSON *root;
+//     root = cJSON_CreateObject();
+//     cJSON_AddStringToObject(root, "mac_Id", "01:02:03:04:05:06");
+//     cJSON_AddNumberToObject(root, "U", 220.00);
+//     cJSON_AddNumberToObject(root, "I", 0.03);
+//     cJSON_AddNumberToObject(root, "F", 50);
+//     cJSON_AddNumberToObject(root, "P", 50);
+//     cJSON_AddNumberToObject(root, "Energy", 1000);
+//     char *my_json_string = cJSON_Print(root);
+// 	LogInfo("my_json_string: %s",my_json_string);
+// }
 
 /*-----------------------------------------------------------*/
