@@ -78,6 +78,9 @@
 /* cJSON for data format */
 #include "cJSON.h"
 
+/* For ESP_LOG*/
+#include "esp_log.h"
+
 /**
  * These configuration settings are required to run the mutual auth demo.
  * Throw compilation error if the below configs are not defined.
@@ -351,6 +354,7 @@ static uint8_t buffer[ NETWORK_BUFFER_SIZE ];
  */
 static MQTTSubAckStatus_t globalSubAckStatus = MQTTSubAckFailure;
 
+static const char *JSON = "JSON";
 /*-----------------------------------------------------------*/
 
 int aws_iot_demo_main( int argc, char ** argv );
@@ -544,10 +548,6 @@ static void updateSubAckStatus( MQTTPacketInfo_t * pPacketInfo );
  */
 static int handleResubscribe( MQTTContext_t * pMqttContext );
 
-/**
- * @brief Function to geneate data under JSON format
- */
-// static void GenerateJSON();
 
 /*-----------------------------------------------------------*/
 
@@ -821,7 +821,11 @@ static void handleIncomingPublish( MQTTPublishInfo_t * pPublishInfo,
                                    uint16_t packetIdentifier )
 {
     assert( pPublishInfo != NULL );
-
+    cJSON *device_json = NULL;;
+    const cJSON *Device_1 = NULL;
+    const cJSON *Device_2 = NULL;
+    const cJSON *Device_3 = NULL;
+    const cJSON *Device_4 = NULL;
     /* Process incoming Publish. */
     LogInfo( ( "Incoming QOS : %d.", pPublishInfo->qos ) );
 
@@ -839,13 +843,49 @@ static void handleIncomingPublish( MQTTPublishInfo_t * pPublishInfo,
                    packetIdentifier,
                    ( int ) pPublishInfo->payloadLength,
                    ( const char * ) pPublishInfo->pPayload ) );
+
+        ESP_LOGI(JSON, "Deserialize ...");
+        device_json = cJSON_Parse( ( const char * ) pPublishInfo->pPayload );
+        if (device_json == NULL) 
+        {
+            const char *error_ptr = cJSON_GetErrorPtr();
+            if (error_ptr != NULL)
+            {
+                printf("Error before: %s\n", error_ptr);
+                goto End;
+            }
+        }
+            
+        Device_1 = cJSON_GetObjectItemCaseSensitive(device_json, "Device 1");
+        if (cJSON_IsNumber(Device_1))
+        {
+            printf("Checking Device 1: %d\n", Device_1->valueint);
+        }
+
+        Device_2 = cJSON_GetObjectItemCaseSensitive(device_json, "Device 2");
+        if (cJSON_IsNumber(Device_2))
+        {
+            printf("Checking Device 2: %d\n", Device_2->valueint);
+        }
+
+        Device_3 = cJSON_GetObjectItemCaseSensitive(device_json, "Device 3");
+        if (cJSON_IsNumber(Device_3))
+        {
+            printf("Checking Device 3: %d\n", Device_3->valueint);
+        }
+
+        Device_4 = cJSON_GetObjectItemCaseSensitive(device_json, "Device 4");
+        if (cJSON_IsNumber(Device_4))
+        {
+            printf("Checking Device 4: %d\n", Device_4->valueint);
+        }
+
+        goto End;
+
     }
-    else
-    {
-        LogInfo( ( "Incoming Publish Topic Name: %.*s does not match subscribed topic.",
-                   pPublishInfo->topicNameLength,
-                   pPublishInfo->pTopicName ) );
-    }
+
+    End:
+        cJSON_Delete(device_json);
 }
 
 /*-----------------------------------------------------------*/
@@ -1244,6 +1284,7 @@ static int publishToTopic( MQTTContext_t * pMqttContext )
     {
         /* Generate JSON data to publish */
         /*TODO: Comunicate PZEM to get data*/
+        ESP_LOGI(JSON, "Serialize.....");
         cJSON *root;
         root = cJSON_CreateObject();
         cJSON_AddStringToObject(root, "mac_Id", "01:02:03:04:05:06");
@@ -1254,6 +1295,7 @@ static int publishToTopic( MQTTContext_t * pMqttContext )
         cJSON_AddNumberToObject(root, "Energy", 1000);
         char *data_JSON = cJSON_Print(root);
 
+        cJSON_Delete(root);
         /* This example publishes to only one topic and uses QOS1. */
         outgoingPublishPackets[ publishIndex ].pubInfo.qos = MQTTQoS1;
         outgoingPublishPackets[ publishIndex ].pubInfo.pTopicName = MQTT_PUB_TOPIC;
@@ -1603,19 +1645,3 @@ int aws_iot_demo_main( int argc,
     return returnStatus;
 }
 
-//"{\"mac_Id\":\"01:02:03:04:05:06\",\"U\":\"220.00\",\"I\":\"0.03\",\"F\":\"50\",\"P\":\"50\",\"Energy\":\"1000\"}"
-// void GenerateJSON() 
-// {
-//     cJSON *root;
-//     root = cJSON_CreateObject();
-//     cJSON_AddStringToObject(root, "mac_Id", "01:02:03:04:05:06");
-//     cJSON_AddNumberToObject(root, "U", 220.00);
-//     cJSON_AddNumberToObject(root, "I", 0.03);
-//     cJSON_AddNumberToObject(root, "F", 50);
-//     cJSON_AddNumberToObject(root, "P", 50);
-//     cJSON_AddNumberToObject(root, "Energy", 1000);
-//     char *my_json_string = cJSON_Print(root);
-// 	LogInfo("my_json_string: %s",my_json_string);
-// }
-
-/*-----------------------------------------------------------*/
