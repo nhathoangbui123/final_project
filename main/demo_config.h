@@ -71,7 +71,15 @@
 #ifndef AWS_MQTT_PORT
     #define AWS_MQTT_PORT    ( CONFIG_MQTT_BROKER_PORT )
 #endif
-
+typedef struct {
+    float voltage;
+    float current;
+    float power;
+    float energy;
+    float frequency;
+    float pf;
+    uint16_t alarms;
+} param_t; // Measured values
 /**
  * @brief The username value for authenticating client to MQTT broker when
  * username/password based client authentication is used.
