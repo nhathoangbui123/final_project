@@ -1,6 +1,7 @@
 set(COMPONENT_SRCS
+	"pzem.c"
+	"aws.c"
 	"app_main.c"
-	"mqtt_demo_mutual_auth.c"
 	)
 
 set(COMPONENT_ADD_INCLUDEDIRS

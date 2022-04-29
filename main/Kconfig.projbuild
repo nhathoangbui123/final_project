@@ -69,8 +69,8 @@ endmenu
 menu "Example Connection Configuration"
     config EXAMPLE_WIFI_SSID
         string "Wifi SSID"
-        default "Xiaomi_30F0"
+        default "NhatHoang"
     config EXAMPLE_WIFI_PASSWORD
             string "Wifi Password"
-        default "1234567890"
+        default "01217818548"
 endmenu
