@@ -71,6 +71,6 @@ menu "Example Connection Configuration"
         string "Wifi SSID"
         default "NhatHoang"
     config EXAMPLE_WIFI_PASSWORD
-        string "Wifi Password"
+            string "Wifi Password"
         default "01217818548"
 endmenu
